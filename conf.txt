@@ -1,0 +1,116 @@
+{
+    "selected_channels": [],
+    "windows": [
+        {
+            "configuration": {
+                "channels": [
+                    {
+                        "color": "#1f77b4",
+                        "common_axis": false,
+                        "computed": false,
+                        "enabled": true,
+                        "fmt": "{}",
+                        "individual_axis": false,
+                        "mdf_uuid": "b4526ad87417",
+                        "mode": "phys",
+                        "name": "ParameterID_Service01",
+                        "precision": 3,
+                        "ranges": [],
+                        "unit": "",
+                        "view_box": [
+                            [
+                                171.6450292045284,
+                                758.8314707954717
+                            ],
+                            [
+                                -82.23000000000002,
+                                32.16999999999999
+                            ]
+                        ]
+                    },
+                    {
+                        "color": "#ff7f0e",
+                        "common_axis": false,
+                        "computed": false,
+                        "enabled": true,
+                        "fmt": "{}",
+                        "individual_axis": false,
+                        "mdf_uuid": "b4526ad87417",
+                        "mode": "phys",
+                        "name": "S1_PID_0B_IntakeManiAbsPress",
+                        "precision": 3,
+                        "ranges": [],
+                        "unit": "",
+                        "view_box": [
+                            [
+                                171.6450292045284,
+                                758.8314707954717
+                            ],
+                            [
+                                -161.4,
+                                190.60000000000002
+                            ]
+                        ]
+                    },
+                    {
+                        "color": "#2ca02c",
+                        "common_axis": false,
+                        "computed": false,
+                        "enabled": true,
+                        "fmt": "{}",
+                        "individual_axis": false,
+                        "mdf_uuid": "b4526ad87417",
+                        "mode": "phys",
+                        "name": "length",
+                        "precision": 3,
+                        "ranges": [],
+                        "unit": "",
+                        "view_box": [
+                            [
+                                171.6450292045284,
+                                758.8314707954717
+                            ],
+                            [
+                                1.8449999999999998,
+                                6.245000000000001
+                            ]
+                        ]
+                    },
+                    {
+                        "color": "#d62728",
+                        "common_axis": false,
+                        "computed": false,
+                        "enabled": true,
+                        "fmt": "{:.3f}",
+                        "individual_axis": false,
+                        "mdf_uuid": "b4526ad87417",
+                        "mode": "phys",
+                        "name": "S1_PID_0C_EngineRPM",
+                        "precision": 3,
+                        "ranges": [],
+                        "unit": "",
+                        "view_box": [
+                            [
+                                171.6450292045284,
+                                758.8314707954717
+                            ],
+                            [
+                                655.21,
+                                12878.41
+                            ]
+                        ]
+                    }
+                ],
+                "pattern": {}
+            },
+            "geometry": [
+                0,
+                0,
+                1666,
+                951
+            ],
+            "title": "Plot 0",
+            "type": "Plot"
+        }
+    ]
+}

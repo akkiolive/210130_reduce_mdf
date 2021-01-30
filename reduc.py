@@ -4,7 +4,7 @@ import numpy as np
 
 
 
-def out(input_filename, verbose=True, save=True, saveName=None, overwrite=False):
+def out(input_filename, output_dir=".", verbose=True, save=True, saveName=None, overwrite=False):
     if verbose:
         print("loading mdf...:", input_filename)
     mdf = MDF(input_filename)
@@ -46,12 +46,15 @@ def out(input_filename, verbose=True, save=True, saveName=None, overwrite=False)
                 channel.data_type = 0
 
     if save:
-        if verbose:
-            print("saving...")
+        from pathlib import Path
+        output_path = Path(output_dir).resolve()
         if saveName:
-            output_name = mdfreduc.save(saveName, overwrite=overwrite)
+            output_path = output_path/saveName
         else:
-            output_name = mdfreduc.save(str(mdf.name.stem) + "_reduc", overwrite=overwrite)
+            output_path = output_path/(str(mdf.name.stem) + "_reduc")
+        if verbose:
+            print("saving...:", output_path)
+        output_name = mdfreduc.save(output_path, overwrite=overwrite)
         if verbose:
             print("output:", output_name)
 
@@ -68,15 +71,22 @@ def out(input_filename, verbose=True, save=True, saveName=None, overwrite=False)
 
 if __name__ == "__main__":    
     import sys
+    import tkinter.filedialog
+    import os
     if len(sys.argv) == 1:
-        import tkinter.filedialog
-        import os
         initDir = os.path.abspath(os.path.dirname(__file__))
-        filenames = tkinter.filedialog.askopenfilenames(initialdir=initDir)
+        filenames = tkinter.filedialog.askopenfilenames(title="Choose input mdf file to reduce size...", initialdir=initDir)
+        output_dir = tkinter.filedialog.askdirectory(title="Choose output directory...", initialdir=initDir)
         for filename in filenames:
-            out(input_filename=filename, verbose=True, save=True, overwrite=True)
-    else:
-        for filename in sys.argv:
-            if filename != __file__:    
-                out(input_filename=filename, verbose=True, save=True, overwrite=True)
+            out(input_filename=filename, output_dir=output_dir, verbose=True, save=True, overwrite=True)
+    elif len(sys.argv) == 2:
+        initDir = os.path.abspath(os.path.dirname(__file__))
+        filenames = tkinter.filedialog.askopenfilenames(title="Choose input mdf file to reduce size...", initialdir=initDir)
+        for filename in filenames:
+            out(input_filename=filename, output_dir=output_dir, verbose=True, save=True, overwrite=True)
+    elif len(sys.argv) >= 3:
+        output_dir = sys.argv[1]
+        for num, filename in enumerate(sys.argv):
+            if not(filename == __file__ or num==0 or num==1):
+                out(input_filename=filename, output_dir=output_dir, verbose=True, save=True, overwrite=True)
     

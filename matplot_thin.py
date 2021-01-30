@@ -13,8 +13,6 @@ for num, signal in enumerate(mdf):
         height_ratios.append(2)
     else:
         height_ratios.append(1)
-
-
 colors = [
     "#1f77b4",
     "#ff7f0e",
@@ -56,7 +54,7 @@ class btn:
         print("clicked")
         print(event)
 
-#plt.ion()
+plt.ion()
 fig, axes = plt.subplots(len(signals), 2, gridspec_kw={'height_ratios': height_ratios,'width_ratios': [1,10]})
 
 for num, signal in enumerate(signals):
@@ -98,6 +96,7 @@ for num, signal in enumerate(signals):
                    ),
        wrap = True 
     )
+
     '''
     axes[num][0].set_zorder(10)
     axes[num][0].patch.set_visible(False)
@@ -130,7 +129,8 @@ axes[num][1].spines["bottom"].set_visible(True)
 axes[num][1].yaxis.label.set_color(color)
 axes[num][1].xaxis.label.set_visible(True)
 axes[num][1].tick_params(axis="x", labelsize=6, color="#000000")
-    
+
+print(axes[num][1].lines[0].get_xydata())    
 
 if False:
     def hoge(e):
@@ -141,13 +141,45 @@ if False:
         buttons.append(Button(ax, signal.name))
         buttons[num].on_clicked(hoge)
 
+ax = fig.subplots(1,2, gridspec_kw={"width_ratios":[1,10]})
+ax[0].set_visible(False)
+ax[1].set_xlim(xlim)
+ax[1].set_ylim([0, 1])
+ax[1].set_zorder(-10)
+ax[1].patch.set_visible(False)
+ax[1].grid(False)
+ax[1].set_xticks([])
+ax[1].set_yticks([])
+ax[1].tick_params(labelsize=0)
+ax[1].spines["top"].set_visible(False)
+ax[1].spines["right"].set_visible(False)
+ax[1].spines["bottom"].set_visible(False)
+ax[1].spines["left"].set_visible(False)
+ax[1].tick_params(axis="x", labelsize=0, length=0, bottom=False)
+plt.setp(ax[1].get_xticklabels(), visible=False)
+lines = ax[1].plot([300, 300], [0, 1], linewidth=2, color="red")
+line = lines[0]
 
+def motion(e):
+    print(e)
+    if e.xdata:
+        line.set_data([e.xdata]*2, [0, 1])
+        if e.button == 2:
+            zoom_cur = e.xdata
+        
 
+def press(e):
+    print(e)
+    if e.xdata:
+        if e.button == 2:
+            zoom_start = e.xdata
+fig.canvas.mpl_connect("motion_notify_event", motion)
+fig.canvas.mpl_connect("button_press_event", press)
 
 #plt.show(block=False)
 #plt.subplots_adjust(wspace=0, hspace=0)
 plt.subplots_adjust(wspace=0.05, hspace=0)
-plt.show()
-#fig.canvas.draw()
+#plt.show()
+fig.canvas.draw()
 
 input()

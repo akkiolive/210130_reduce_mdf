@@ -1,5 +1,6 @@
 from asammdf import MDF
 import matplotlib.pyplot as plt
+import matplotlib.style as mplstyle
 from matplotlib.widgets import Button
 
 mdf = MDF("sample.dat")
@@ -54,8 +55,23 @@ class btn:
         print("clicked")
         print(event)
 
-plt.ion()
-fig, axes = plt.subplots(len(signals), 2, gridspec_kw={'height_ratios': height_ratios,'width_ratios': [1,10]})
+#plt.ion()
+fig, axes = plt.subplots(len(signals), 2, gridspec_kw={'height_ratios': height_ratios,'width_ratios': [1,10]}, sharex="col")
+mplstyle.use('fast')
+
+lines = []
+
+iniBGs = []
+for ax in axes:
+    bg_left = fig.canvas.copy_from_bbox(ax[0].get_tightbbox(fig.canvas.get_renderer()))
+    bg_right = fig.canvas.copy_from_bbox(ax[1].get_tightbbox(fig.canvas.get_renderer()))
+    iniBGs.append([bg_left, bg_right])
+
+print(axes[0][1].bbox)
+print(axes[0][1].dataLim)
+print(axes[0][1].viewLim)
+print(axes[0][1].get_tightbbox(fig.canvas.get_renderer()))
+
 
 for num, signal in enumerate(signals):
     ##get color
@@ -65,7 +81,8 @@ for num, signal in enumerate(signals):
     axes[num][1].grid(b=True, which="major", color=subcolor, linestyle="dashed", alpha=0.2)
     axes[num][1].grid(b=True, which="minor", color=subcolor, linestyle="dashdot", alpha=0.2)
     ##plot
-    axes[num][1].plot(signal.timestamps, signal.samples, label=signal.name, linewidth=0.5, color=color)
+    lines_ = axes[num][1].plot(signal.timestamps, signal.samples, label=signal.name, linewidth=0.5, color=color)
+    lines.append(lines_[0])
     xlim = axes[num][1].get_xlim()
     ylim = axes[num][1].get_ylim()
     ##set ticks color, fontsize
@@ -141,45 +158,150 @@ if False:
         buttons.append(Button(ax, signal.name))
         buttons[num].on_clicked(hoge)
 
-ax = fig.subplots(1,2, gridspec_kw={"width_ratios":[1,10]})
-ax[0].set_visible(False)
-ax[1].set_xlim(xlim)
-ax[1].set_ylim([0, 1])
-ax[1].set_zorder(-10)
-ax[1].patch.set_visible(False)
-ax[1].grid(False)
-ax[1].set_xticks([])
-ax[1].set_yticks([])
-ax[1].tick_params(labelsize=0)
-ax[1].spines["top"].set_visible(False)
-ax[1].spines["right"].set_visible(False)
-ax[1].spines["bottom"].set_visible(False)
-ax[1].spines["left"].set_visible(False)
-ax[1].tick_params(axis="x", labelsize=0, length=0, bottom=False)
-plt.setp(ax[1].get_xticklabels(), visible=False)
-lines = ax[1].plot([300, 300], [0, 1], linewidth=2, color="red")
-line = lines[0]
+axes_for_vcursor = fig.subplots(1,2, gridspec_kw={"width_ratios":[1,10]})
+ax_vcursor = axes_for_vcursor[1]
+axes_for_vcursor[0].set_visible(False)
+ax_vcursor.set_xlim(xlim)
+ax_vcursor.set_ylim([0, 1])
+ax_vcursor.set_zorder(20)
+ax_vcursor.patch.set_visible(False)
+ax_vcursor.grid(False)
+ax_vcursor.set_xticks([])
+ax_vcursor.set_yticks([])
+ax_vcursor.tick_params(labelsize=0)
+#ax_vcursor.spines["top"].set_visible(False)
+#ax_vcursor.spines["right"].set_visible(False)
+ax_vcursor.spines["bottom"].set_visible(False)
+ax_vcursor.spines["left"].set_visible(False)
+ax_vcursor.tick_params(axis="x", labelsize=0, length=0, bottom=False)
+plt.setp(ax_vcursor.get_xticklabels(), visible=False)
+line_vcursor = ax_vcursor.axvline(300, linewidth=2, color="red")
 
+
+bg = fig.canvas.copy_from_bbox(fig.bbox)
+pressed = False
+key_pressed = {"control":False,
+    "alt":False,
+    "shift":False,
+    "right":False,
+    "left":False,
+    "up":False,
+    "down":False}
 def motion(e):
+    global bg, pressed
     print(e)
     if e.xdata:
-        line.set_data([e.xdata]*2, [0, 1])
+        if pressed:
+            line_vcursor.set_data([e.xdata]*2, [0, 1])
         if e.button == 2:
             zoom_cur = e.xdata
+    #fig.canvas.restore_region(bg)
+    #ax_vcursor.draw_artist(line_vcursor)
+    #fig.canvas.blit(ax_vcursor.bbox)
+    #fig.canvas.flush_events()
+
         
 
 def press(e):
     print(e)
+    global bg, line_vcursor, pressed
+    pressed = True
+    
     if e.xdata:
         if e.button == 2:
             zoom_start = e.xdata
+
+def release(e):
+    global bg, pressed
+    pressed = False
+
+def resize(e):
+    print(e)
+    for n, ax in enumerate(axes):
+        bb = ax[1].get_lines()[0].clipbox
+        ax[1].get_lines()[0].set_visible(False)
+        print("line:", ax[1].get_lines()[0].clipbox)
+        print("ax:", ax[1].get_tightbbox(fig.canvas.get_renderer()))
+        iniBGs[n][1] = fig.canvas.copy_from_bbox(ax[1].get_tightbbox(fig.canvas.get_renderer()))
+        ax[1].get_lines()[0].set_visible(True)
+        
+    fig.canvas.draw()
+    bg = fig.canvas.copy_from_bbox(fig.bbox)
+
+def draw(e):
+    print(e)
+    #bg = fig.canvas.copy_from_bbox(fig.bbox)
+
+def scroll(e):
+    print(e)
+    global xlim, bg, axes, fig
+    diff = (xlim[1] - xlim[0])*0.1
+    if e.button == "up":
+        if key_pressed["control"]:
+            axes[-1][1].set_xlim( [xlim[0]+diff, xlim[1]-diff] )
+            xlim = axes[-1][1].get_xlim()
+            for n, axe in enumerate(axes):
+                line = axe[1].get_lines()[0]
+                fig.canvas.restore_region(iniBGs[n][1])
+                axe[1].draw_artist(line)
+            fig.canvas.blit(fig.bbox)
+        else:
+            axes[-1][1].set_xlim( [xlim[0]-diff, xlim[1]-diff] )
+            xlim = axes[-1][1].get_xlim()
+            fig.canvas.draw()
+            bg = fig.canvas.copy_from_bbox(fig.bbox)
+    elif e.button == "down":
+        if key_pressed["control"]:
+            axes[-1][1].set_xlim( [xlim[0]-diff, xlim[1]+diff] )
+            xlim = axes[-1][1].get_xlim()
+            #fig.canvas.draw()
+            fig.canvas.blit(fig.bbox)
+            bg = fig.canvas.copy_from_bbox(fig.bbox)
+        else:
+            axes[-1][1].set_xlim( [xlim[0]+diff, xlim[1]+diff] )
+            xlim = axes[-1][1].get_xlim()
+            fig.canvas.draw()
+            bg = fig.canvas.copy_from_bbox(fig.bbox)
+
+def key_press(e):
+    global key_pressed
+    print("key_press:", "key =", e.key, ",x =", e.x, ",y =", e.y, ",xdata =", e.xdata, ",ydata =", e.ydata, "inaxes =", e.inaxes)
+    for key in e.key.split("+"):
+        key_pressed[key] = True
+    
+
+def key_release(e):
+    global key_pressed
+    print("key_release:", "key =", e.key, ",x =", e.x, ",y =", e.y, ",xdata =", e.xdata, ",ydata =", e.ydata, "inaxes =", e.inaxes)
+    key_pressed[e.key] = False
+
+
 fig.canvas.mpl_connect("motion_notify_event", motion)
 fig.canvas.mpl_connect("button_press_event", press)
+fig.canvas.mpl_connect("button_release_event", release)
+fig.canvas.mpl_connect("resize_event", resize)
+fig.canvas.mpl_connect("draw_event", draw)
+fig.canvas.mpl_connect("scroll_event", scroll)
+fig.canvas.mpl_connect("key_press_event", key_press)
+fig.canvas.mpl_connect("key_release_event", key_release)
 
 #plt.show(block=False)
 #plt.subplots_adjust(wspace=0, hspace=0)
 plt.subplots_adjust(wspace=0.05, hspace=0)
 #plt.show()
+
+for n, ax in enumerate(axes):
+    print(ax[1].get_tightbbox(fig.canvas.get_renderer()))
+    iniBGs[n][1] = fig.canvas.copy_from_bbox(ax[1].get_tightbbox(fig.canvas.get_renderer()))
+
+ax_vcursor.set_visible(False)
 fig.canvas.draw()
+bg = fig.canvas.copy_from_bbox(fig.bbox)
+ax_vcursor.set_visible(True)
+
+bb = axes[0][1].get_lines()[0].clipbox
+
+plt.show()
+
 
 input()
